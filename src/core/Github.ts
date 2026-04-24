@@ -15,7 +15,7 @@ export class Github {
     public async listReleases(): Promise<Release[]> {
         return this.octokit.paginate(
             "GET /repos/{owner}/{repo}/releases",
-            Input.Github.REPO,
+            { ...Input.Github.REPO, per_page: 100 },
         );
     }
 
@@ -25,9 +25,9 @@ export class Github {
                 ...Input.Github.REPO,
                 asset_id: asset.id,
             });
-            core.debug(`Release asset dropped: [${release.name}] ${asset.name}`);
+            core.debug(`Release asset dropped: [${release.name ?? release.tag_name}] ${asset.name}`);
         }
-        core.debug(`Drop release: ${release.name}`);
+        core.debug(`Drop release: ${release.name ?? release.tag_name}`);
         await this.octokit.rest.repos.deleteRelease({
             ...Input.Github.REPO,
             release_id: release.id,
