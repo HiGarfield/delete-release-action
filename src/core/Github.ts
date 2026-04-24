@@ -4,7 +4,6 @@ import { Endpoints } from "@octokit/types";
 import { Input } from "./Input";
 
 type Release = Endpoints["GET /repos/{owner}/{repo}/releases"]["response"]["data"][number];
-type ReleaseAsset = Release["assets"][number];
 
 export class Github {
     private readonly octokit: ReturnType<typeof github.getOctokit>;
@@ -21,7 +20,7 @@ export class Github {
     }
 
     public async dropRelease(release: Release, dropTag: boolean): Promise<void> {
-        for (const asset of release.assets as ReleaseAsset[]) {
+        for (const asset of release.assets) {
             await this.octokit.rest.repos.deleteReleaseAsset({
                 ...Input.Github.REPO,
                 asset_id: asset.id,

@@ -7,7 +7,12 @@ type Release = Endpoints["GET /repos/{owner}/{repo}/releases"]["response"]["data
 
 async function run(): Promise<void> {
     const allReleases = await Github.getInstance().listReleases();
-    core.debug(`Releases list data: \n${JSON.stringify(allReleases)}`);
+    const releasePreview = allReleases.slice(0, 10).map(release => ({
+        id: release.id,
+        tag_name: release.tag_name,
+        name: release.name,
+    }));
+    core.debug(`Releases total count: ${allReleases.length}; preview: ${JSON.stringify(releasePreview)}`);
     if (allReleases.length === 0) {
         core.info("No releases found, action finished!");
         return;

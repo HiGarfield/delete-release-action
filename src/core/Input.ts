@@ -1,6 +1,15 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
+function parseKeepCount(inputName: string): number {
+    const raw = core.getInput(inputName);
+    const value = Number(raw);
+    if (!Number.isFinite(value) || !Number.isInteger(value)) {
+        throw new Error(`Invalid value for input '${inputName}': expected an integer, got '${raw}'.`);
+    }
+    return Math.max(value, -1);
+}
+
 export class Input {
     public static Github = class {
         public static get TOKEN(): string {
@@ -16,7 +25,11 @@ export class Input {
             if (repo === "") {
                 return github.context.repo;
             }
-            const [owner, repoName] = repo.split("/");
+            const parts = repo.split("/");
+            if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
+                throw new Error("Invalid `repo` input. Expected format: `owner/repo`.");
+            }
+            const [owner, repoName] = parts;
             return { owner, repo: repoName };
         }
     };
@@ -27,7 +40,7 @@ export class Input {
         }
 
         public static get KEEP_COUNT(): number {
-            return Math.max(Number(core.getInput("release-keep-count")), -1);
+            return parseKeepCount("release-keep-count");
         }
 
         public static get DROP_TAG(): boolean {
@@ -41,7 +54,7 @@ export class Input {
         }
 
         public static get KEEP_COUNT(): number {
-            return Math.max(Number(core.getInput("pre-release-keep-count")), -1);
+            return parseKeepCount("pre-release-keep-count");
         }
 
         public static get DROP_TAG(): boolean {
@@ -55,7 +68,7 @@ export class Input {
         }
 
         public static get KEEP_COUNT(): number {
-            return Math.max(Number(core.getInput("draft-drop-count")), -1);
+            return parseKeepCount("draft-drop-count");
         }
     };
 }

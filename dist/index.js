@@ -23715,6 +23715,14 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 
 // src/core/Input.ts
+function parseKeepCount(inputName) {
+  const raw = getInput(inputName);
+  const value = Number(raw);
+  if (!Number.isFinite(value) || !Number.isInteger(value)) {
+    throw new Error(`Invalid value for input '${inputName}': expected an integer, got '${raw}'.`);
+  }
+  return Math.max(value, -1);
+}
 var Input = class {
   static Github = class {
     static get TOKEN() {
@@ -23729,7 +23737,11 @@ var Input = class {
       if (repo === "") {
         return context2.repo;
       }
-      const [owner, repoName] = repo.split("/");
+      const parts = repo.split("/");
+      if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
+        throw new Error("Invalid `repo` input. Expected format: `owner/repo`.");
+      }
+      const [owner, repoName] = parts;
       return { owner, repo: repoName };
     }
   };
@@ -23738,7 +23750,7 @@ var Input = class {
       return getBooleanInput("release-drop");
     }
     static get KEEP_COUNT() {
-      return Math.max(Number(getInput("release-keep-count")), -1);
+      return parseKeepCount("release-keep-count");
     }
     static get DROP_TAG() {
       return getBooleanInput("release-drop-tag");
@@ -23749,7 +23761,7 @@ var Input = class {
       return getBooleanInput("pre-release-drop");
     }
     static get KEEP_COUNT() {
-      return Math.max(Number(getInput("pre-release-keep-count")), -1);
+      return parseKeepCount("pre-release-keep-count");
     }
     static get DROP_TAG() {
       return getBooleanInput("pre-release-drop-tag");
@@ -23760,7 +23772,7 @@ var Input = class {
       return getBooleanInput("draft-drop");
     }
     static get KEEP_COUNT() {
-      return Math.max(Number(getInput("draft-drop-count")), -1);
+      return parseKeepCount("draft-drop-count");
     }
   };
 };
@@ -23810,8 +23822,12 @@ var Github = class _Github {
 // src/index.ts
 async function run() {
   const allReleases = await Github.getInstance().listReleases();
-  debug(`Releases list data: 
-${JSON.stringify(allReleases)}`);
+  const releasePreview = allReleases.slice(0, 10).map((release) => ({
+    id: release.id,
+    tag_name: release.tag_name,
+    name: release.name
+  }));
+  debug(`Releases total count: ${allReleases.length}; preview: ${JSON.stringify(releasePreview)}`);
   if (allReleases.length === 0) {
     info("No releases found, action finished!");
     return;
