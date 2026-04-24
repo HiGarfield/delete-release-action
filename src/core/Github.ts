@@ -1,46 +1,50 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
-import {Input} from "./Input";
-import {PaginateInterface} from "@octokit/plugin-paginate-rest";
-import {RestEndpointMethods} from "@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types";
+import { Endpoints } from "@octokit/types";
+import { Input } from "./Input";
+
+type Release = Endpoints["GET /repos/{owner}/{repo}/releases"]["response"]["data"][number];
 
 export class Github {
-    private readonly octokitRest: RestEndpointMethods;
-    private readonly octokitPaginate: PaginateInterface;
+    private readonly octokit: ReturnType<typeof github.getOctokit>;
 
     private constructor() {
-        const octokit = github.getOctokit(Input.Github.TOKEN);
-        this.octokitRest = octokit.rest;
-        this.octokitPaginate = octokit.paginate;
+        this.octokit = github.getOctokit(Input.Github.TOKEN);
     }
 
-    public async listReleases(): Promise<any> {
-        return (await this.octokitPaginate("GET /repos/:owner/:repo/releases", Input.Github.REPO));
+    public async listReleases(): Promise<Release[]> {
+        return this.octokit.paginate(
+            "GET /repos/{owner}/{repo}/releases",
+            Input.Github.REPO,
+        );
     }
 
-    public async dropRelease(release: any, dropTag: boolean) {
+    public async dropRelease(release: Release, dropTag: boolean): Promise<void> {
         for (const asset of release.assets) {
-            await this.octokitRest.repos.deleteReleaseAsset(Object.assign(
-                Input.Github.REPO, { asset_id: asset.id }
-            ));
+            await this.octokit.rest.repos.deleteReleaseAsset({
+                ...Input.Github.REPO,
+                asset_id: asset.id,
+            });
             core.debug(`Release asset dropped: [${release.name}] ${asset.name}`);
         }
         core.debug(`Drop release: ${release.name}`);
-        await this.octokitRest.repos.deleteRelease(Object.assign(
-            Input.Github.REPO, { release_id: release.id }
-        ));
+        await this.octokit.rest.repos.deleteRelease({
+            ...Input.Github.REPO,
+            release_id: release.id,
+        });
         if (!dropTag) return;
         core.debug(`Drop tag: ${release.tag_name}`);
-        await this.octokitRest.git.deleteRef(Object.assign(
-            Input.Github.REPO, { ref: `tags/${release.tag_name}` }
-        ));
+        await this.octokit.rest.git.deleteRef({
+            ...Input.Github.REPO,
+            ref: `tags/${release.tag_name}`,
+        });
         core.info(`Release dropped: ${release.name}`);
     }
 
     private static instance: Github | null = null;
 
     public static getInstance(): Github {
-        if (this.instance == null) {
+        if (this.instance === null) {
             this.instance = new Github();
         }
         return this.instance;
