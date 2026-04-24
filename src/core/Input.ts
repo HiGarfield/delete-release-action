@@ -4,62 +4,58 @@ import * as github from '@actions/github';
 export class Input {
     public static Github = class {
         public static get TOKEN(): string {
-            const githubToken = process.env.GITHUB_TOKEN;
-            if (githubToken == undefined) {
-                core.error("No GITHUB_TOKEN found. pass `GITHUB_TOKEN` as env!")
-                process.exit(1);
-                return ''
+            const token = process.env.GITHUB_TOKEN;
+            if (!token) {
+                throw new Error("No GITHUB_TOKEN found. Pass `GITHUB_TOKEN` as env!");
             }
-            return githubToken;
+            return token;
         }
-        public static get REPO(): { owner: string, repo: string } {
+
+        public static get REPO(): { owner: string; repo: string } {
             const repo = core.getInput("repo");
-            if (repo == "") {
+            if (repo === "") {
                 return github.context.repo;
             }
-            const split = repo.split("/");
-            return {
-                owner: split[0],
-                repo: split[1],
-            }
+            const [owner, repoName] = repo.split("/");
+            return { owner, repo: repoName };
         }
-    }
+    };
 
     public static Release = class {
         public static get DROP(): boolean {
             return core.getBooleanInput("release-drop");
         }
+
         public static get KEEP_COUNT(): number {
-            return Math.max(Number(core.getInput("release-keep-count")));
+            return Math.max(Number(core.getInput("release-keep-count")), -1);
         }
+
         public static get DROP_TAG(): boolean {
             return core.getBooleanInput("release-drop-tag");
         }
-    }
+    };
 
     public static PreRelease = class {
         public static get DROP(): boolean {
             return core.getBooleanInput("pre-release-drop");
         }
+
         public static get KEEP_COUNT(): number {
             return Math.max(Number(core.getInput("pre-release-keep-count")), -1);
         }
+
         public static get DROP_TAG(): boolean {
             return core.getBooleanInput("pre-release-drop-tag");
         }
-    }
+    };
 
     public static Draft = class {
         public static get DROP(): boolean {
             return core.getBooleanInput("draft-drop");
         }
+
         public static get KEEP_COUNT(): number {
-            const value = core.getInput("draft-drop-count");
-            if (value === "") {
-                return -1;
-            } else {
-                return Math.max(Number(value), -1);
-            }
+            return Math.max(Number(core.getInput("draft-drop-count")), -1);
         }
-    }
+    };
 }

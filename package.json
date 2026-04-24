@@ -4,7 +4,7 @@
   "description": "Github action for deleting releases",
   "main": "./src/index.ts",
   "scripts": {
-    "build": "ncc build ./src/index.ts --license LICENSE"
+    "build": "esbuild ./src/index.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.js"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
   "homepage": "https://github.com/sgpublic/delete-release-action#readme",
   "devDependencies": {
     "@types/node": "^25.6.0",
-    "@vercel/ncc": "^0.38.4",
+    "esbuild": "^0.28.0",
     "typescript": "^6.0.3"
   },
   "dependencies": {
