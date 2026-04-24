@@ -23809,7 +23809,7 @@ var Github = class _Github {
         ref: `tags/${release.tag_name}`
       });
     }
-    info(`Release dropped: ${release.name}`);
+    info(`Release dropped: ${release.name ?? release.tag_name}`);
   }
   static instance = null;
   static getInstance() {

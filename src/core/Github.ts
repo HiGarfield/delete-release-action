@@ -39,7 +39,7 @@ export class Github {
                 ref: `tags/${release.tag_name}`,
             });
         }
-        core.info(`Release dropped: ${release.name}`);
+        core.info(`Release dropped: ${release.name ?? release.tag_name}`);
     }
 
     private static instance: Github | null = null;
