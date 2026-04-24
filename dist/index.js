@@ -23802,13 +23802,14 @@ var Github = class _Github {
       ...Input.Github.REPO,
       release_id: release.id
     });
-    if (!dropTag) return;
-    debug(`Drop tag: ${release.tag_name}`);
-    await this.octokit.rest.git.deleteRef({
-      ...Input.Github.REPO,
-      ref: `tags/${release.tag_name}`
-    });
-    info(`Release dropped: ${release.name}`);
+    if (dropTag) {
+      debug(`Drop tag: ${release.tag_name}`);
+      await this.octokit.rest.git.deleteRef({
+        ...Input.Github.REPO,
+        ref: `tags/${release.tag_name}`
+      });
+    }
+    info(`Release dropped: ${release.name ?? release.tag_name}`);
   }
   static instance = null;
   static getInstance() {
@@ -23870,10 +23871,9 @@ async function run() {
 }
 async function dropReleases(releases, keep, dropTag) {
   const sorted = [...releases].sort((rA, rB) => {
-    if (rA.published_at && rB.published_at) {
-      return rB.published_at.localeCompare(rA.published_at);
-    }
-    return (rB.name ?? "").localeCompare(rA.name ?? "");
+    const dateA = rA.published_at ?? rA.created_at;
+    const dateB = rB.published_at ?? rB.created_at;
+    return dateB.localeCompare(dateA);
   });
   const github = Github.getInstance();
   for (let i = keep; i < sorted.length; i++) {

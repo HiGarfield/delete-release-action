@@ -32,13 +32,14 @@ export class Github {
             ...Input.Github.REPO,
             release_id: release.id,
         });
-        if (!dropTag) return;
-        core.debug(`Drop tag: ${release.tag_name}`);
-        await this.octokit.rest.git.deleteRef({
-            ...Input.Github.REPO,
-            ref: `tags/${release.tag_name}`,
-        });
-        core.info(`Release dropped: ${release.name}`);
+        if (dropTag) {
+            core.debug(`Drop tag: ${release.tag_name}`);
+            await this.octokit.rest.git.deleteRef({
+                ...Input.Github.REPO,
+                ref: `tags/${release.tag_name}`,
+            });
+        }
+        core.info(`Release dropped: ${release.name ?? release.tag_name}`);
     }
 
     private static instance: Github | null = null;
