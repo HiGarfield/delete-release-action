@@ -9,7 +9,9 @@ export class Github {
     private readonly octokit: ReturnType<typeof github.getOctokit>;
 
     private constructor() {
-        this.octokit = github.getOctokit(Input.Github.TOKEN);
+        this.octokit = github.getOctokit(Input.Github.TOKEN, {
+            request: { fetch: globalThis.fetch },
+        });
     }
 
     public async listReleases(): Promise<Release[]> {

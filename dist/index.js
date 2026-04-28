@@ -23781,7 +23781,9 @@ var Input = class {
 var Github = class _Github {
   octokit;
   constructor() {
-    this.octokit = getOctokit(Input.Github.TOKEN);
+    this.octokit = getOctokit(Input.Github.TOKEN, {
+      request: { fetch: globalThis.fetch }
+    });
   }
   async listReleases() {
     return this.octokit.paginate(
