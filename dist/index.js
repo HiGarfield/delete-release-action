@@ -8546,7 +8546,7 @@ var require_proxy_agent = __commonJS({
         return this.#client.destroy(err);
       }
     };
-    var ProxyAgent2 = class extends DispatcherBase {
+    var ProxyAgent3 = class extends DispatcherBase {
       constructor(opts) {
         super();
         if (!opts || typeof opts === "object" && !(opts instanceof URL2) && !opts.uri) {
@@ -8687,7 +8687,7 @@ var require_proxy_agent = __commonJS({
         throw new InvalidArgumentError("Proxy-Authorization should be sent in ProxyAgent constructor");
       }
     }
-    module2.exports = ProxyAgent2;
+    module2.exports = ProxyAgent3;
   }
 });
 
@@ -8697,7 +8697,7 @@ var require_env_http_proxy_agent = __commonJS({
     "use strict";
     var DispatcherBase = require_dispatcher_base();
     var { kClose, kDestroy, kClosed, kDestroyed, kDispatch, kNoProxyAgent, kHttpProxyAgent, kHttpsProxyAgent } = require_symbols();
-    var ProxyAgent2 = require_proxy_agent();
+    var ProxyAgent3 = require_proxy_agent();
     var Agent = require_agent();
     var DEFAULT_PORTS = {
       "http:": 80,
@@ -8721,13 +8721,13 @@ var require_env_http_proxy_agent = __commonJS({
         this[kNoProxyAgent] = new Agent(agentOpts);
         const HTTP_PROXY = httpProxy ?? process.env.http_proxy ?? process.env.HTTP_PROXY;
         if (HTTP_PROXY) {
-          this[kHttpProxyAgent] = new ProxyAgent2({ ...agentOpts, uri: HTTP_PROXY });
+          this[kHttpProxyAgent] = new ProxyAgent3({ ...agentOpts, uri: HTTP_PROXY });
         } else {
           this[kHttpProxyAgent] = this[kNoProxyAgent];
         }
         const HTTPS_PROXY = httpsProxy ?? process.env.https_proxy ?? process.env.HTTPS_PROXY;
         if (HTTPS_PROXY) {
-          this[kHttpsProxyAgent] = new ProxyAgent2({ ...agentOpts, uri: HTTPS_PROXY });
+          this[kHttpsProxyAgent] = new ProxyAgent3({ ...agentOpts, uri: HTTPS_PROXY });
         } else {
           this[kHttpsProxyAgent] = this[kHttpProxyAgent];
         }
@@ -18495,7 +18495,7 @@ var require_undici = __commonJS({
     var Pool = require_pool();
     var BalancedPool = require_balanced_pool();
     var Agent = require_agent();
-    var ProxyAgent2 = require_proxy_agent();
+    var ProxyAgent3 = require_proxy_agent();
     var EnvHttpProxyAgent = require_env_http_proxy_agent();
     var RetryAgent = require_retry_agent();
     var errors = require_errors();
@@ -18518,7 +18518,7 @@ var require_undici = __commonJS({
     module2.exports.Pool = Pool;
     module2.exports.BalancedPool = BalancedPool;
     module2.exports.Agent = Agent;
-    module2.exports.ProxyAgent = ProxyAgent2;
+    module2.exports.ProxyAgent = ProxyAgent3;
     module2.exports.EnvHttpProxyAgent = EnvHttpProxyAgent;
     module2.exports.RetryAgent = RetryAgent;
     module2.exports.RetryHandler = RetryHandler;
@@ -18634,10 +18634,10 @@ var require_proxy = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getProxyUrl = getProxyUrl2;
-    exports2.checkBypass = checkBypass;
+    exports2.checkBypass = checkBypass2;
     function getProxyUrl2(reqUrl) {
       const usingSsl = reqUrl.protocol === "https:";
-      if (checkBypass(reqUrl)) {
+      if (checkBypass2(reqUrl)) {
         return void 0;
       }
       const proxyVar = (() => {
@@ -18649,21 +18649,21 @@ var require_proxy = __commonJS({
       })();
       if (proxyVar) {
         try {
-          return new DecodedURL(proxyVar);
+          return new DecodedURL2(proxyVar);
         } catch (_a) {
           if (!proxyVar.startsWith("http://") && !proxyVar.startsWith("https://"))
-            return new DecodedURL(`http://${proxyVar}`);
+            return new DecodedURL2(`http://${proxyVar}`);
         }
       } else {
         return void 0;
       }
     }
-    function checkBypass(reqUrl) {
+    function checkBypass2(reqUrl) {
       if (!reqUrl.hostname) {
         return false;
       }
       const reqHost = reqUrl.hostname;
-      if (isLoopbackAddress(reqHost)) {
+      if (isLoopbackAddress2(reqHost)) {
         return true;
       }
       const noProxy = process.env["no_proxy"] || process.env["NO_PROXY"] || "";
@@ -18689,11 +18689,11 @@ var require_proxy = __commonJS({
       }
       return false;
     }
-    function isLoopbackAddress(host) {
+    function isLoopbackAddress2(host) {
       const hostLower = host.toLowerCase();
       return hostLower === "localhost" || hostLower.startsWith("127.") || hostLower.startsWith("[::1]") || hostLower.startsWith("[0:0:0:0:0:0:0:1]");
     }
-    var DecodedURL = class extends URL {
+    var DecodedURL2 = class extends URL {
       constructor(url, base) {
         super(url, base);
         this._decodedUsername = decodeURIComponent(super.username);
@@ -19569,6 +19569,79 @@ function escapeProperty(s) {
 
 // node_modules/@actions/core/lib/core.js
 var os3 = __toESM(require("os"), 1);
+
+// node_modules/@actions/http-client/lib/proxy.js
+function getProxyUrl(reqUrl) {
+  const usingSsl = reqUrl.protocol === "https:";
+  if (checkBypass(reqUrl)) {
+    return void 0;
+  }
+  const proxyVar = (() => {
+    if (usingSsl) {
+      return process.env["https_proxy"] || process.env["HTTPS_PROXY"];
+    } else {
+      return process.env["http_proxy"] || process.env["HTTP_PROXY"];
+    }
+  })();
+  if (proxyVar) {
+    try {
+      return new DecodedURL(proxyVar);
+    } catch (_a) {
+      if (!proxyVar.startsWith("http://") && !proxyVar.startsWith("https://"))
+        return new DecodedURL(`http://${proxyVar}`);
+    }
+  } else {
+    return void 0;
+  }
+}
+function checkBypass(reqUrl) {
+  if (!reqUrl.hostname) {
+    return false;
+  }
+  const reqHost = reqUrl.hostname;
+  if (isLoopbackAddress(reqHost)) {
+    return true;
+  }
+  const noProxy = process.env["no_proxy"] || process.env["NO_PROXY"] || "";
+  if (!noProxy) {
+    return false;
+  }
+  let reqPort;
+  if (reqUrl.port) {
+    reqPort = Number(reqUrl.port);
+  } else if (reqUrl.protocol === "http:") {
+    reqPort = 80;
+  } else if (reqUrl.protocol === "https:") {
+    reqPort = 443;
+  }
+  const upperReqHosts = [reqUrl.hostname.toUpperCase()];
+  if (typeof reqPort === "number") {
+    upperReqHosts.push(`${upperReqHosts[0]}:${reqPort}`);
+  }
+  for (const upperNoProxyItem of noProxy.split(",").map((x) => x.trim().toUpperCase()).filter((x) => x)) {
+    if (upperNoProxyItem === "*" || upperReqHosts.some((x) => x === upperNoProxyItem || x.endsWith(`.${upperNoProxyItem}`) || upperNoProxyItem.startsWith(".") && x.endsWith(`${upperNoProxyItem}`))) {
+      return true;
+    }
+  }
+  return false;
+}
+function isLoopbackAddress(host) {
+  const hostLower = host.toLowerCase();
+  return hostLower === "localhost" || hostLower.startsWith("127.") || hostLower.startsWith("[::1]") || hostLower.startsWith("[0:0:0:0:0:0:0:1]");
+}
+var DecodedURL = class extends URL {
+  constructor(url, base) {
+    super(url, base);
+    this._decodedUsername = decodeURIComponent(super.username);
+    this._decodedPassword = decodeURIComponent(super.password);
+  }
+  get username() {
+    return this._decodedUsername;
+  }
+  get password() {
+    return this._decodedPassword;
+  }
+};
 
 // node_modules/@actions/http-client/lib/index.js
 var tunnel = __toESM(require_tunnel2(), 1);
@@ -23714,6 +23787,9 @@ function getOctokit(token, options, ...additionalPlugins) {
   return new GitHubWithPlugins(getOctokitOptions(token, options));
 }
 
+// src/core/Github.ts
+var import_undici3 = __toESM(require_undici());
+
 // src/core/Input.ts
 function parseKeepCount(inputName) {
   const raw = getInput(inputName);
@@ -23778,11 +23854,27 @@ var Input = class {
 };
 
 // src/core/Github.ts
+function createFetch() {
+  const apiUrl = process.env["GITHUB_API_URL"] || "https://api.github.com";
+  const proxyUrl = getProxyUrl(new URL(apiUrl));
+  if (!proxyUrl) {
+    return globalThis.fetch;
+  }
+  let dispatcher;
+  try {
+    dispatcher = new import_undici3.ProxyAgent({ uri: proxyUrl.href });
+  } catch (err) {
+    throw new Error(
+      `Failed to create proxy agent for ${proxyUrl.href}: ${err instanceof Error ? err.message : String(err)}. Check that HTTPS_PROXY / HTTP_PROXY is set to a valid URL.`
+    );
+  }
+  return (input, init) => globalThis.fetch(input, { ...init, dispatcher });
+}
 var Github = class _Github {
   octokit;
   constructor() {
     this.octokit = getOctokit(Input.Github.TOKEN, {
-      request: { fetch: globalThis.fetch }
+      request: { fetch: createFetch() }
     });
   }
   async listReleases() {
