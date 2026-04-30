@@ -71,10 +71,21 @@ export class Github {
         });
         if (dropTag) {
             core.debug(`Drop tag: ${release.tag_name}`);
-            await this.octokit.rest.git.deleteRef({
-                ...Input.Github.REPO,
-                ref: `tags/${release.tag_name}`,
-            });
+            try {
+                await this.octokit.rest.git.deleteRef({
+                    ...Input.Github.REPO,
+                    ref: `tags/${release.tag_name}`,
+                });
+            } catch (err: unknown) {
+                const status = typeof err === 'object' && err !== null && 'status' in err
+                    ? (err as { status: number }).status
+                    : undefined;
+                if (status === 422 || status === 404) {
+                    core.warning(`Tag '${release.tag_name}' does not exist or has already been deleted, skipping.`);
+                } else {
+                    throw err;
+                }
+            }
         }
         core.info(`Release dropped: ${release.name ?? release.tag_name}`);
     }
