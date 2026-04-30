@@ -59,11 +59,10 @@ async function run(): Promise<void> {
 }
 
 async function dropReleases(releases: Release[], keep: number, dropTag: boolean): Promise<void> {
-    const sorted = [...releases].sort((rA, rB) => {
-        const tsA = new Date(rA.published_at ?? rA.created_at).getTime();
-        const tsB = new Date(rB.published_at ?? rB.created_at).getTime();
-        return tsB - tsA;
-    });
+    const sorted = releases
+        .map(r => ({ release: r, ts: new Date(r.published_at ?? r.created_at).getTime() }))
+        .sort((a, b) => b.ts - a.ts)
+        .map(({ release }) => release);
     const github = Github.getInstance();
     for (let i = keep; i < sorted.length; i++) {
         await github.dropRelease(sorted[i], dropTag);

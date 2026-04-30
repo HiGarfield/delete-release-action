@@ -23906,7 +23906,8 @@ var Github = class _Github {
       } catch (err) {
         const status = typeof err === "object" && err !== null && "status" in err ? err.status : void 0;
         if (status === 422 || status === 404) {
-          warning(`Tag '${release.tag_name}' does not exist or has already been deleted, skipping.`);
+          const message = typeof err === "object" && err !== null && "message" in err ? err.message : String(err);
+          warning(`Tag '${release.tag_name}' could not be deleted (HTTP ${status}: ${message}), skipping.`);
         } else {
           throw err;
         }
@@ -23973,11 +23974,7 @@ async function run() {
   info("All task finished!");
 }
 async function dropReleases(releases, keep, dropTag) {
-  const sorted = [...releases].sort((rA, rB) => {
-    const tsA = new Date(rA.published_at ?? rA.created_at).getTime();
-    const tsB = new Date(rB.published_at ?? rB.created_at).getTime();
-    return tsB - tsA;
-  });
+  const sorted = releases.map((r) => ({ release: r, ts: new Date(r.published_at ?? r.created_at).getTime() })).sort((a, b) => b.ts - a.ts).map(({ release }) => release);
   const github = Github.getInstance();
   for (let i = keep; i < sorted.length; i++) {
     await github.dropRelease(sorted[i], dropTag);

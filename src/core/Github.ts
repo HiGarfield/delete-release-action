@@ -81,7 +81,10 @@ export class Github {
                     ? (err as { status: number }).status
                     : undefined;
                 if (status === 422 || status === 404) {
-                    core.warning(`Tag '${release.tag_name}' does not exist or has already been deleted, skipping.`);
+                    const message = typeof err === 'object' && err !== null && 'message' in err
+                        ? (err as { message: string }).message
+                        : String(err);
+                    core.warning(`Tag '${release.tag_name}' could not be deleted (HTTP ${status}: ${message}), skipping.`);
                 } else {
                     throw err;
                 }
